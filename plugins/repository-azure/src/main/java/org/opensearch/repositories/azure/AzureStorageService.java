@@ -47,7 +47,6 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.ParallelTransferOptions;
 import com.azure.storage.blob.specialized.BlockBlobAsyncClient;
-import com.azure.storage.common.implementation.connectionstring.StorageConnectionString;
 import com.azure.storage.common.implementation.connectionstring.StorageEndpoint;
 import com.azure.storage.common.policy.RequestRetryOptions;
 import com.azure.storage.common.policy.RetryPolicyType;
@@ -162,7 +161,6 @@ public class AzureStorageService implements AutoCloseable {
     private ClientState buildClient(AzureStorageSettings azureStorageSettings, BiConsumer<HttpRequest, HttpResponse> statsCollector)
         throws InvalidKeyException, URISyntaxException {
         final BlobServiceClientBuilder builder = createClientBuilder(azureStorageSettings);
-
         final NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup(new NioThreadFactory());
         final NettyAsyncHttpClientBuilder clientBuilder = new NettyAsyncHttpClientBuilder().eventLoopGroup(eventLoopGroup);
 
@@ -216,8 +214,7 @@ public class AzureStorageService implements AutoCloseable {
      * <a href="https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/storage/azure-storage-blob/migrationGuides/V8_V12.md#miscellaneous">migration guide</a> for mode details:
      */
     private BlobServiceClientBuilder applyLocationMode(final BlobServiceClientBuilder builder, final AzureStorageSettings settings) {
-        final StorageConnectionString storageConnectionString = StorageConnectionString.create(settings.getConnectString(), logger);
-        final StorageEndpoint endpoint = storageConnectionString.getBlobEndpoint();
+        final StorageEndpoint endpoint = settings.getStorageEndpoint();
 
         if (endpoint == null || endpoint.getPrimaryUri() == null) {
             throw new IllegalArgumentException("connectionString missing required settings to derive blob service primary endpoint.");
@@ -249,7 +246,7 @@ public class AzureStorageService implements AutoCloseable {
 
     private static BlobServiceClientBuilder createClientBuilder(AzureStorageSettings settings) throws InvalidKeyException,
         URISyntaxException {
-        return SocketAccess.doPrivilegedException(() -> new BlobServiceClientBuilder().connectionString(settings.getConnectString()));
+        return SocketAccess.doPrivilegedException(() -> settings.configure(new BlobServiceClientBuilder()));
     }
 
     /**
