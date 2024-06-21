@@ -30,18 +30,13 @@
  * GitHub history for details.
  */
 
+/*
+ * This custom file is added such that we are not adding all permissions from plugins/repository-azure/src/main/plugin-metadata/plugin-security.policy
+ * This would ensure we are not exposing too much privilege to the main opensearch project.
+ * This custom file is only be used in the option, -Djava.security.policy, in jvm.options.
+ */
+
 grant {
-  // azure client opens socket connections for to access repository
+  // reactor-core from the main opensearch project needs this permission to authenticate to azure blob storage using managed identity.
   permission java.net.SocketPermission "*", "connect,resolve";
-  permission java.lang.RuntimePermission "setFactory";
-  permission java.net.NetPermission "getProxySelector";
-  permission java.lang.RuntimePermission "accessDeclaredMembers";
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  permission java.lang.RuntimePermission "setContextClassLoader";
-
-  // azure client set Authenticator for proxy username/password
-  permission java.net.NetPermission "setDefaultAuthenticator";
-
-  // azure identity
-  permission java.util.PropertyPermission "os.name", "read";
 };
